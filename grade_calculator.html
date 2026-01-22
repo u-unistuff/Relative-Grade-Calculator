@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Relative Grade Calculator</title>
+    <style>
+        :root {
+            /* Light Theme (Default) */
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --input-bg: #ffffff;
+            --input-border: #cbd5e1;
+            --row-bg: #f1f5f9;
+            --row-focus: #eff6ff;
+            --row-focus-border: #bfdbfe;
+            --error: #ef4444;
+            --btn-remove-bg: #ef4444;
+            --result-box-bg: #f8fafc;
+            --result-border: #e2e8f0;
+            --table-border: #e2e8f0;
+            --table-header: #f1f5f9;
+            --code-bg: #f1f5f9;
+        }
+
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --primary: #60a5fa;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --input-bg: #334155;
+            --input-border: #475569;
+            --row-bg: #334155;
+            --row-focus: #1e293b;
+            --row-focus-border: #60a5fa;
+            --error: #f87171;
+            --btn-remove-bg: #dc2626;
+            --result-box-bg: #334155;
+            --result-border: #475569;
+            --table-border: #475569;
+            --table-header: #334155;
+            --code-bg: #0f172a;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            max-width: 950px;
+            margin: 0 auto;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+            overflow-x: hidden; 
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h1 { margin: 0; color: var(--primary); font-size: 1.8rem; }
+        
+        .theme-toggle {
+            background: none;
+            border: 2px solid var(--input-border);
+            color: var(--text);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+            min-height: 40px; 
+        }
+        
+        .container {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s;
+            margin-bottom: 40px;
+        }
+
+        /* --- Calculator Styles --- */
+        .exam-row {
+            display: grid;
+            /* Changed from 5 to 4 columns to remove Student Count space */
+            grid-template-columns: repeat(4, 1fr) auto;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: end;
+            padding: 20px;
+            background: var(--row-bg);
+            border-radius: 10px;
+            border: 1px solid transparent;
+            transition: background-color 0.3s, border-color 0.2s;
+        }
+        
+        .exam-row label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: block;
+            color: var(--text-muted);
+            white-space: nowrap; 
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            font-size: 16px; 
+            color: var(--text);
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+        }
+        input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
+
+        button {
+            cursor: pointer;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+        
+        .btn-add { 
+            background-color: var(--primary); 
+            color: white; 
+            margin-top: 10px;
+            width: 100%;
+            padding: 14px;
+        }
+        
+        .btn-remove { 
+            background-color: var(--btn-remove-bg); 
+            color: white; 
+            width: 40px; 
+            height: 40px; 
+            padding: 0; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            border-radius: 50%;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .btn-calc { 
+            background-color: #059669; 
+            color: white; 
+            width: 100%; 
+            font-size: 1.2rem; 
+            margin-top: 25px; 
+            padding: 18px; 
+            box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.2);
+        }
+        button:hover { opacity: 0.95; }
+
+        #error-msg {
+            display: none; background-color: #fef2f2; color: #991b1b; padding: 15px;
+            border-radius: 8px; margin-top: 20px; border: 1px solid #fecaca;
+            text-align: center; font-weight: 600;
+        }
+
+        #results {
+            margin-top: 30px; padding-top: 20px; border-top: 2px solid var(--result-border); display: none;
+        }
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .stat-box {
+            background: var(--result-box-bg); padding: 20px; border-radius: 8px;
+            border: 1px solid var(--result-border); text-align: center;
+        }
+        .stat-label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
+        .final-grade {
+            grid-column: span 2; background: var(--card-bg); border: 2px solid var(--result-border); padding: 30px 20px;
+        }
+        .grade-big { font-size: 4rem; font-weight: 800; line-height: 1; margin: 10px 0 0 0; }
+
+        /* --- Info Section (Collapsible) --- */
+        details { width: 100%; }
+        
+        summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 5px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+        /* Hide default arrow in Chrome/Safari */
+        summary::-webkit-details-marker { display: none; }
+        
+        summary:hover { opacity: 0.8; }
+        
+        summary::after {
+            content: '+'; 
+            font-size: 1.5rem; 
+            font-weight: 400;
+            margin-left: 10px;
+        }
+        
+        details[open] summary::after { content: '-'; }
+        
+        /* Animation for opening */
+        details[open] .info-content {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .info-content {
+            margin-top: 20px;
+            border-top: 1px solid var(--input-border);
+            padding-top: 20px;
+        }
+
+        .formula-box {
+            background: var(--code-bg); padding: 20px; border-radius: 8px; text-align: center;
+            font-family: 'Courier New', Courier, monospace; font-weight: bold; margin-bottom: 30px;
+            color: var(--text); border: 1px solid var(--table-border);
+            overflow-x: auto; 
+        }
+        .table-wrapper {
+            overflow-x: auto; border-radius: 8px; border: 1px solid var(--table-border);
+            -webkit-overflow-scrolling: touch; 
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 800px; }
+        th, td { padding: 10px; text-align: center; border-bottom: 1px solid var(--table-border); border-right: 1px solid var(--table-border); }
+        th { background-color: var(--table-header); color: var(--text); font-weight: 700; }
+        td { color: var(--text-muted); }
+        .grade-header { background-color: var(--primary); color: white; }
+
+        /* --- MOBILE OPTIMIZATIONS --- */
+        @media (max-width: 700px) {
+            body { padding: 15px; }
+            .container { padding: 20px 15px; }
+            h1 { font-size: 1.5rem; text-align: center; width: 100%; }
+            .header-row { justify-content: center; }
+            
+            .exam-row { 
+                grid-template-columns: 1fr 1fr; 
+                gap: 15px;
+                padding: 15px;
+            }
+            
+            /* Inputs now stack 2x2 naturally */
+
+            .btn-remove {
+                grid-column: span 2;
+                width: 100%;
+                border-radius: 8px;
+                height: 44px; 
+                background-color: var(--row-bg); 
+                border: 1px solid var(--error);
+                color: var(--error);
+                font-weight: bold;
+            }
+            .btn-remove:hover {
+                background-color: var(--error);
+                color: white;
+            }
+            .btn-remove::after {
+                content: " Remove Assignment";
+                font-size: 0.9rem;
+                margin-left: 8px;
+            }
+
+            .result-grid { grid-template-columns: 1fr 1fr; }
+            .final-grade { grid-column: span 2; }
+            
+            .table-wrapper::after {
+                content: '→ Scroll for more';
+                display: block;
+                text-align: right;
+                padding: 5px;
+                font-size: 0.7rem;
+                color: var(--text-muted);
+            }
+        }
+
+        @media (max-width: 380px) {
+            .result-grid { grid-template-columns: 1fr; }
+            .final-grade { grid-column: span 1; }
+            .stat-box { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-row">
+        <h1>Relative Grade Calculator</h1>
+        <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()">
+            🌙 Dark Mode
+        </button>
+    </div>
+
+    <div class="container">
+        <div id="exams-container"></div>
+        <button class="btn-add" onclick="addExamRow()">+ Add Assignment</button>
+        <div id="error-msg"></div>
+        <button class="btn-calc" onclick="calculateGrade()">Calculate Grade</button>
+
+        <div id="results">
+            <h3 style="text-align:center; color:var(--text-muted);">Results</h3>
+            <div class="result-grid">
+                <div class="stat-box final-grade" id="grade-box">
+                    <div class="stat-label">Final Letter Grade</div>
+                    <div class="grade-big" id="res-letter">-</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Your Weighted Score</div>
+                    <div class="stat-value" id="res-my-score">-</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Your T-Score</div>
+                    <div class="stat-value" id="res-t-score">-</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Class Average</div>
+                    <div class="stat-value" id="res-class-mean">-</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Class Std. Dev</div>
+                    <div class="stat-value" id="res-std-dev">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <details>
+            <summary>How does it work?</summary>
+            
+            <div class="info-content">
+                <p style="color:var(--text-muted);">
+                    <strong>Relative Grade Calculator (T-Score System)</strong><br>
+                    A web-based utility designed for university students in Türkiye and Europe to estimate letter grades using the Relative Grading System.
+                </p>
+                
+                <div class="formula-box">
+                    T = 10 × Z + 50
+                    <br><br>
+                    <span style="font-size:0.9em; font-weight:normal; color:var(--text-muted);">where Z = (Your Score - Class Mean) / Class Std Dev</span>
+                </div>
+
+                <h3>Grading Thresholds Table</h3>
+                <p style="color:var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">
+                    The T-Score required for each letter grade changes based on the success level (Average) of the class.
+                </p>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th rowspan="2">Class Average Range</th>
+                                <th rowspan="2">Level</th>
+                                <th colspan="13" class="grade-header">Required T-Score Lower Limits</th>
+                            </tr>
+                            <tr>
+                                <th>FF</th><th>DD</th><th>DD+</th><th>DC</th><th>DC+</th><th>CC</th><th>CC+</th><th>CB</th><th>CB+</th><th>BB</th><th>BB+</th><th>BA</th><th>BA+</th><th>AA</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>80.00 ≤ X ≤ 100</td><td>Excellent</td><td>-</td><td>27</td><td>29</td><td>32</td><td>34</td><td>37</td><td>39</td><td>42</td><td>44</td><td>47</td><td>49</td><td>52</td><td>54</td><td>57</td></tr>
+                            <tr><td>70.00 ≤ X < 80.00</td><td>Outstanding</td><td>-</td><td>29</td><td>31</td><td>34</td><td>36</td><td>39</td><td>41</td><td>44</td><td>46</td><td>49</td><td>51</td><td>54</td><td>56</td><td>59</td></tr>
+                            <tr><td>62.50 ≤ X < 70.00</td><td>Very Good</td><td>-</td><td>31</td><td>33</td><td>36</td><td>38</td><td>41</td><td>43</td><td>46</td><td>48</td><td>51</td><td>53</td><td>56</td><td>58</td><td>61</td></tr>
+                            <tr><td>57.50 ≤ X < 62.50</td><td>Good</td><td>-</td><td>33</td><td>35</td><td>38</td><td>40</td><td>43</td><td>45</td><td>48</td><td>50</td><td>53</td><td>55</td><td>58</td><td>60</td><td>63</td></tr>
+                            <tr><td>52.50 ≤ X < 57.50</td><td>Above Avg</td><td>-</td><td>35</td><td>37</td><td>40</td><td>42</td><td>45</td><td>47</td><td>50</td><td>52</td><td>55</td><td>57</td><td>60</td><td>62</td><td>65</td></tr>
+                            <tr><td>47.50 ≤ X < 52.50</td><td>Average</td><td>-</td><td>37</td><td>39</td><td>42</td><td>44</td><td>47</td><td>49</td><td>52</td><td>54</td><td>57</td><td>59</td><td>62</td><td>64</td><td>67</td></tr>
+                            <tr><td>42.50 ≤ X < 47.50</td><td>Weak</td><td>-</td><td>39</td><td>41</td><td>44</td><td>46</td><td>49</td><td>51</td><td>54</td><td>56</td><td>59</td><td>61</td><td>64</td><td>66</td><td>69</td></tr>
+                            <tr><td>X < 42.50</td><td>Poor</td><td>-</td><td>41</td><td>43</td><td>46</td><td>48</td><td>51</td><td>53</td><td>56</td><td>58</td><td>61</td><td>63</td><td>66</td><td>68</td><td>71</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <p style="text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-top: 20px; line-height: 1.4; padding-bottom: 20px;">
+        <strong>Disclaimer:</strong> This tool provides estimates based on standard T-Score formulas. 
+        Final grades are determined by university systems and faculty discretion. 
+        <br><em>Developed with AI assistance.</em>
+    </p>
+
+    <script>
+        const gradeColors = {
+            "AA": "#16a34a", "BA+": "#22c55e", "BA": "#4ade80", "BB+": "#84cc16", "BB": "#a3e635", 
+            "CB+": "#facc15", "CB": "#fde047", "CC+": "#fbbf24", "CC": "#f59e0b", "DC+": "#ea580c", 
+            "DC": "#c2410c", "DD+": "#b91c1c", "DD": "#dc2626", "FF": "#991b1b"
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                updateThemeButton(true);
+            }
+
+            // Init defaults
+            addExamRow(0.3, 70, 15, 85); 
+            addExamRow(0.3, 75, 12, 80); 
+            addExamRow(0.4, 65, 18, 90); 
+        });
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            if (current === 'dark') {
+                html.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+                updateThemeButton(false);
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                updateThemeButton(true);
+            }
+        }
+
+        function updateThemeButton(isDark) {
+            const btn = document.getElementById('theme-btn');
+            btn.innerHTML = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+        }
+
+        function addExamRow(w = '', m = '70', s = '15', x = '85') {
+            const container = document.getElementById('exams-container');
+            const rowId = Date.now() + Math.random(); 
+            
+            const div = document.createElement('div');
+            div.className = 'exam-row';
+            div.id = `row-${rowId}`;
+            
+            // REMOVED Student Count Input
+            div.innerHTML = `
+                <div><label>Weight</label><input type="number" step="0.01" class="input-w" value="${w}"></div>
+                <div><label>Mean</label><input type="number" step="0.01" class="input-m" value="${m}"></div>
+                <div><label>Std Dev</label><input type="number" step="0.01" class="input-s" value="${s}"></div>
+                <div><label>My Grade</label><input type="number" step="0.01" class="input-x" value="${x}"></div>
+                <button class="btn-remove" onclick="removeRow('${rowId}')" title="Remove Row">✕</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeRow(id) {
+            if(document.querySelectorAll('.exam-row').length > 1) {
+                document.getElementById(`row-${id}`).remove();
+                hideError();
+            } else {
+                showError("You must have at least one assignment.");
+            }
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('error-msg');
+            el.textContent = msg;
+            el.style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+        }
+
+        function hideError() { document.getElementById('error-msg').style.display = 'none'; }
+
+        function calculateGrade() {
+            hideError();
+            const rows = document.querySelectorAll('.exam-row');
+            let totalW = 0, sumWX = 0, sumWM = 0, sumVar = 0;
+            let hasEmptyWeight = false;
+
+            rows.forEach(row => {
+                const wInput = row.querySelector('.input-w').value;
+                if (wInput === '') hasEmptyWeight = true;
+                
+                // Standard parseFloat works fine on value returned by type="number" inputs
+                const w = parseFloat(wInput) || 0;
+                const m = parseFloat(row.querySelector('.input-m').value) || 0;
+                const s = parseFloat(row.querySelector('.input-s').value) || 0;
+                const x = parseFloat(row.querySelector('.input-x').value) || 0;
+
+                totalW += w;
+                sumWX += w * x;
+                sumWM += w * m;
+                sumVar += Math.pow(w * s, 2);
+            });
+
+            if (hasEmptyWeight) { showError("Please fill in the Weight for all assignments."); return; }
+            if (Math.abs(totalW - 1.0) > 0.001) { showError(`Total weight must equal 1.0. Current: ${totalW.toFixed(3)}`); return; }
+
+            const finalMyScore = sumWX; 
+            const finalClassMean = sumWM;
+            const finalStdDev = Math.sqrt(sumVar);
+
+            let tScore = 50;
+            if (finalStdDev > 0.0001) {
+                tScore = (10 * (finalMyScore - finalClassMean) / finalStdDev) + 50;
+            }
+
+            const result = getLetterGrade(tScore, finalClassMean);
+            
+            // UI Updates
+            const gradeBox = document.getElementById('grade-box');
+            const letterEl = document.getElementById('res-letter');
+            const gradeColor = gradeColors[result] || '#64748b';
+            
+            letterEl.style.color = gradeColor;
+            gradeBox.style.backgroundColor = gradeColor + '15'; 
+            gradeBox.style.borderColor = gradeColor + '40'; 
+
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('res-my-score').textContent = finalMyScore.toFixed(2);
+            document.getElementById('res-class-mean').textContent = finalClassMean.toFixed(2);
+            document.getElementById('res-std-dev').textContent = finalStdDev.toFixed(2);
+            document.getElementById('res-t-score').textContent = tScore.toFixed(2);
+            document.getElementById('res-letter').textContent = result;
+            
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function getLetterGrade(t, mean) {
+            let limits = {};
+            if (mean >= 80) limits = { AA: 57, "BA+": 54, BA: 52, "BB+": 49, BB: 47, "CB+": 44, CB: 42, "CC+": 39, CC: 37, "DC+": 34, DC: 32, "DD+": 29, DD: 27 };
+            else if (mean >= 70) limits = { AA: 59, "BA+": 56, BA: 54, "BB+": 51, BB: 49, "CB+": 46, CB: 44, "CC+": 41, CC: 39, "DC+": 36, DC: 34, "DD+": 31, DD: 29 };
+            else if (mean >= 62.5) limits = { AA: 61, "BA+": 58, BA: 56, "BB+": 53, BB: 51, "CB+": 48, CB: 46, "CC+": 43, CC: 41, "DC+": 38, DC: 36, "DD+": 33, DD: 31 };
+            else if (mean >= 57.5) limits = { AA: 63, "BA+": 60, BA: 58, "BB+": 55, BB: 53, "CB+": 50, CB: 48, "CC+": 45, CC: 43, "DC+": 40, DC: 38, "DD+": 35, DD: 33 };
+            else if (mean >= 52.5) limits = { AA: 65, "BA+": 62, BA: 60, "BB+": 57, BB: 55, "CB+": 52, CB: 50, "CC+": 47, CC: 45, "DC+": 42, DC: 40, "DD+": 37, DD: 35 };
+            else if (mean >= 47.5) limits = { AA: 67, "BA+": 64, BA: 62, "BB+": 59, BB: 57, "CB+": 54, CB: 52, "CC+": 49, CC: 47, "DC+": 44, DC: 42, "DD+": 39, DD: 37 };
+            else if (mean >= 42.5) limits = { AA: 69, "BA+": 66, BA: 64, "BB+": 61, BB: 59, "CB+": 56, CB: 54, "CC+": 51, CC: 49, "DC+": 46, DC: 44, "DD+": 41, DD: 39 };
+            else limits = { AA: 71, "BA+": 68, BA: 66, "BB+": 63, BB: 61, "CB+": 58, CB: 56, "CC+": 53, CC: 51, "DC+": 48, DC: 46, "DD+": 43, DD: 41 };
+
+            const grades = ["AA", "BA+", "BA", "BB+", "BB", "CB+", "CB", "CC+", "CC", "DC+", "DC", "DD+", "DD"];
+            for (let g of grades) {
+                if (t >= limits[g]) return g;
+            }
+            return "FF";
+        }
+    </script>
+</body>
+</html>
